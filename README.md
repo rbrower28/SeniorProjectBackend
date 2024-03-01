@@ -3,6 +3,11 @@
 
 ## Features:
 
+* Base template for backend
+* Connection to DB
 
 ### Needs doing:
 
+* Model setup
+* Route setup
+* Controller setup
