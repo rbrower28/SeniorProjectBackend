@@ -3,7 +3,7 @@ const app = express();
 const bodyParser = require("body-parser")
 const mongodb = require("./db/connect");
 
-// Deploys on current hosting port (or localhost)
+// can switch between localhost or current deployed port
 const port = process.env.port || 8080
 
 app
@@ -13,7 +13,7 @@ app
     next();
   })
 
-// Redirect to routes folder
+// redirect to routes folder
 app.use("/", require("./routes"));
 
 process.on("uncaughtException", (err, origin) => {
@@ -23,12 +23,12 @@ process.on("uncaughtException", (err, origin) => {
   })
 })
 
-// Initialize db
+// initialize db
 mongodb.initDb((err) => {
-  if (err) {
-    console.log(err);
-  } else {
-    app.listen(port);
-    console.log(`Connected to DB and listening on ${port}`);
-  }
-});
+    if (err) {
+      console.log(err);
+    } else {
+      app.listen(port);
+      console.log(`Connected to DB and listening on ${port}`);
+    }
+  });
