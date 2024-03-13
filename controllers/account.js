@@ -82,4 +82,18 @@ const deleteAccount = async (req, res) => {
   }
 };
 
-module.exports = { getAll, getSingle, createAccount, updateAccount, deleteAccount };
+
+// LOGIN CONTROLLER
+
+const login = (req, res) => {
+  const email = req.body.email;
+  const password = req.body.password;
+  res.status(200).json({ email: email, password: password, token: "123sample" });
+}
+
+const refreshLogin = (req, res) => {
+  const token = req.params.token;
+  res.status(200).json({ token: token });
+}
+
+module.exports = { getAll, getSingle, createAccount, updateAccount, deleteAccount, login, refreshLogin };
