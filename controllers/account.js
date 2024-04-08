@@ -1,6 +1,7 @@
 const mongodb = require("../db/connect");
-const ObjectId = require("mongodb").ObjectId;
+// const ObjectId = require("mongodb").ObjectId;
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 
 // Accounts Controller
 
@@ -35,30 +36,41 @@ const createAccount = async (req, res) => {
   if (existing.length > 0) {
     res.status(400).json("Account with this email already exists.");
   } else {
-    // mark each post with the date and time created
-    let timestamp = Date().toLocaleString();
-    const account = {
-      email: req.body.email,
-      password: req.body.password,
-      time_created: timestamp,
-    };
-    const token = jwt.sign(
-      {
-        email: req.body.email,
-        password: req.body.password,
-      },
-      process.env.SECRET_KEY
-    );
-    const response = await mongodb
-      .getDb()
-      .db("tmp")
-      .collection("account")
-      .insertOne(account);
-    if (response.acknowledged) {
-      res.status(201).json(token);
-    } else {
-      res.status(500).json(response.error || "Something happened in contact.");
-    }
+    // encrypt password
+    bcrypt.hash(req.body.password, 10, async (err, hash) => {
+      if (err) {
+        res
+          .status(500)
+          .json(response.error || "Something happened in contact.");
+      } else {
+        // mark each post with the date and time created
+        let timestamp = Date().toLocaleString();
+        const account = {
+          email: req.body.email,
+          password: hash,
+          time_created: timestamp,
+        };
+        const token = jwt.sign(
+          {
+            email: req.body.email,
+            password: hash,
+          },
+          process.env.SECRET_KEY
+        );
+        const response = await mongodb
+          .getDb()
+          .db("tmp")
+          .collection("account")
+          .insertOne(account);
+        if (response.acknowledged) {
+          res.status(201).json(token);
+        } else {
+          res
+            .status(500)
+            .json(response.error || "Something happened in contact.");
+        }
+      }
+    });
   }
 };
 
@@ -117,21 +129,27 @@ const login = async (req, res) => {
     .getDb()
     .db("tmp")
     .collection("account")
-    .find({ email: req.body.email, password: req.body.password })
+    .find({ email: req.body.email })
     .toArray();
 
   if (!data[0] || !data[0].email || !data[0].password) {
     res.status(404).json({ message: "Account does not exist." });
   } else {
-    const token = jwt.sign(
-      {
-        email: data[0].email,
-        password: data[0].password,
-      },
-      process.env.SECRET_KEY
-    );
-
-    res.status(200).json(token);
+    bcrypt.compare(req.body.password, data[0].password).then((result) => {
+      if (result) {
+        const token = jwt.sign(
+          {
+            email: data[0].email,
+            password: data[0].password,
+          },
+          process.env.SECRET_KEY
+        );
+    
+        res.status(200).json(token);
+      } else {
+        res.status(404).json({ message: "Incorrect password." });
+      }
+    });
   }
 };
 
