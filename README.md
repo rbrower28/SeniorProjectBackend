@@ -6,8 +6,5 @@
 * Base template for backend
 * Connection to DB
 * Route & Controller for Account CRUD
-
-### Needs doing:
-
 * Graph data storage
 * Graph data deposit & retrieval API endpoints
